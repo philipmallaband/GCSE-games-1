@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>God on Trial</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0d1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  h1 { font-size: 2rem; color: #f59e0b; margin-bottom: 4px; text-align: center; }
+  .subtitle { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; text-align: center; }
+
+  #scorebar {
+    display: flex; justify-content: space-between; align-items: center;
+    width: 100%; max-width: 700px;
+    background: #1e293b; border-radius: 10px; padding: 10px 20px;
+    margin-bottom: 20px; font-size: 0.95rem;
+  }
+  .score-label { color: #94a3b8; }
+  .score-val { color: #f59e0b; font-weight: bold; font-size: 1.2rem; }
+  #topic-badge {
+    background: #7c3aed; color: white; border-radius: 20px;
+    padding: 4px 14px; font-size: 0.85rem;
+  }
+
+  #arena {
+    width: 100%; max-width: 700px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+  }
+
+  .label-tag {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+    color: #64748b; margin-bottom: 6px;
+  }
+
+  #prosecution-card {
+    background: #1e293b;
+    border: 2px solid #dc2626;
+    border-radius: 14px;
+    padding: 22px 26px;
+    width: 100%;
+  }
+  #prosecution-card .who {
+    font-size: 0.8rem; color: #f87171; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  #prosecution-card p { font-size: 1.05rem; line-height: 1.6; color: #f1f5f9; }
+
+  #choices {
+    width: 100%; display: flex; flex-direction: column; gap: 10px;
+  }
+  .choice-btn {
+    background: #1e293b; border: 2px solid #334155;
+    color: #e2e8f0; border-radius: 10px;
+    padding: 14px 18px; font-size: 0.95rem; line-height: 1.5;
+    cursor: pointer; text-align: left;
+    transition: all 0.2s; font-family: Georgia, serif;
+  }
+  .choice-btn:hover:not(:disabled) {
+    border-color: #f59e0b; background: #1e2d40;
+  }
+  .choice-btn.correct { border-color: #22c55e; background: #14532d; }
+  .choice-btn.wrong { border-color: #ef4444; background: #450a0a; }
+  .choice-btn:disabled { cursor: default; }
+
+  #feedback-box {
+    display: none;
+    background: #1e293b; border-radius: 10px;
+    padding: 16px 20px; width: 100%;
+    border-left: 4px solid #f59e0b;
+    font-size: 0.95rem; line-height: 1.6; color: #cbd5e1;
+  }
+  #feedback-box.show { display: block; }
+  #feedback-box strong { color: #f59e0b; }
+
+  #next-btn {
+    display: none;
+    background: #f59e0b; color: #0d1117;
+    border: none; border-radius: 8px;
+    padding: 12px 32px; font-size: 1rem;
+    cursor: pointer; font-weight: bold;
+    font-family: Georgia, serif;
+  }
+  #next-btn.show { display: block; }
+  #next-btn:hover { background: #d97706; }
+
+  #end-screen {
+    display: none; text-align: center;
+    width: 100%; max-width: 700px;
+  }
+  #end-screen.show { display: block; }
+  #gavel { font-size: 4rem; margin-bottom: 16px; }
+  #verdict { font-size: 1.5rem; color: #f59e0b; margin-bottom: 16px; }
+  #end-detail { color: #94a3b8; font-size: 1rem; margin-bottom: 24px; line-height: 1.6; }
+
+  .score-display-row {
+    display: flex; align-items: center; justify-content: center; gap: 20px;
+    margin-bottom: 20px;
+  }
+  #final-score { font-size: 3.5rem; color: #f59e0b; font-weight: bold; }
+  .grade-badge {
+    font-size: 2rem; font-weight: bold; color: #0d1117;
+    width: 70px; height: 70px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .score-dots {
+    display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .sdot {
+    width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem;
+    display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
+  }
+  .sdot.hit { background: #22c55e; }
+  .sdot.miss { background: #ef4444; }
+  #new-best {
+    display: none; background: #f59e0b; color: #0d1117;
+    border-radius: 20px; padding: 6px 18px; font-size: 0.9rem;
+    font-weight: bold; margin-bottom: 16px; display: inline-block;
+  }
+  #new-best.show { display: inline-block; }
+
+  .restart-btn {
+    background: #7c3aed; color: white; border: none;
+    border-radius: 8px; padding: 12px 28px; font-size: 1rem;
+    cursor: pointer; margin: 6px; font-family: Georgia, serif;
+  }
+  .restart-btn:hover { background: #6d28d9; }
+
+  .progress-dots {
+    display: flex; gap: 8px; margin-bottom: 10px;
+  }
+  .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #334155;
+  }
+  .dot.done { background: #22c55e; }
+  .dot.wrong-dot { background: #ef4444; }
+  .dot.current { background: #f59e0b; }
+
+  #back-link {
+    color: #64748b; font-size: 0.85rem; margin-bottom: 16px;
+    text-decoration: none; display: block; text-align: center;
+  }
+  #back-link:hover { color: #f59e0b; }
+</style>
+</head>
+<body>
+
+<script src="supabase-config.js"></script>
+<a href="gcse_god_hub.html" id="back-link">← Back to Games Hub</a>
+<h1>⚖️ God on Trial</h1>
+<p class="subtitle">You're defending belief in God. Choose the best response to each challenge!</p>
+
+<div id="intro-screen" style="width:100%;max-width:700px;text-align:center;padding:20px 0 8px">
+  <input type="text" id="name-input" placeholder="Enter your name to begin..."
+    style="width:100%;max-width:320px;background:#1e293b;border:1px solid #334155;color:#e2e8f0;border-radius:8px;padding:12px 16px;font-size:1rem;font-family:Georgia,serif;display:block;margin:0 auto 10px"
+    onkeydown="if(event.key==='Enter')startGame()" />
+  <div id="name-error" style="color:#ef4444;font-size:0.85rem;min-height:18px;margin-bottom:8px"></div>
+  <button onclick="startGame()" style="background:#ef4444;color:white;border:none;border-radius:8px;padding:12px 28px;font-size:1rem;font-weight:bold;cursor:pointer;font-family:Georgia,serif">Begin Trial ⚖️</button>
+</div>
+
+<div id="scorebar" style="display:none">
+  <div><span class="score-label">Score: </span><span class="score-val" id="score-display">0</span></div>
+  <div id="topic-badge">Design Argument</div>
+  <div><span class="score-label">Question: </span><span class="score-val" id="q-display">1/9</span></div>
+</div>
+
+<div id="arena" style="display:none">
+  <div class="progress-dots" id="progress-dots"></div>
+
+  <div id="prosecution-card">
+    <div class="who">⚖️ Prosecution challenges:</div>
+    <p id="challenge-text"></p>
+  </div>
+
+  <div class="label-tag">Your defence — choose wisely:</div>
+
+  <div id="choices">
+    <button class="choice-btn" id="choice-0" onclick="choose(0)"></button>
+    <button class="choice-btn" id="choice-1" onclick="choose(1)"></button>
+    <button class="choice-btn" id="choice-2" onclick="choose(2)"></button>
+  </div>
+
+  <div id="feedback-box"></div>
+  <button id="next-btn" onclick="nextQuestion()">Next Challenge →</button>
+</div>
+
+<div id="end-screen">
+  <div id="gavel">🔨</div>
+  <div id="verdict"></div>
+  <div class="score-display-row">
+    <div id="final-score">0 / 9</div>
+    <div class="grade-badge" id="grade-badge">?</div>
+  </div>
+  <div class="score-dots" id="score-dots"></div>
+  <div id="new-best">⭐ New personal best!</div>
+  <div id="end-detail"></div>
+  <div id="submit-status" style="font-size:0.9rem;margin-top:16px;min-height:20px;color:#64748b"></div>
+  <div style="margin-top:16px;">
+    <button class="restart-btn" onclick="restart()">Try Again</button>
+    <button class="restart-btn" onclick="location.href='gcse_god_hub.html'" style="background:#334155">Back to Hub</button>
+  </div>
+</div>
+
+<script>
+// correct index is varied across 0, 1, 2 — options are all similar in length
+const questions = [
+  // ── DESIGN ARGUMENT ──
+  {
+    topic: "Design Argument",
+    challenge: "The universe is just the result of physical laws and chance. Why bring God into it at all?",
+    options: [
+      "The vastness of the universe argues against design — a caring God would not waste billions of empty galaxies just to house one small planet on its edge.",
+      "The complexity and fine-tuning of the universe points to a designer — just as Paley's watch implies a watchmaker, the cosmos implies a divine intelligence behind its order.",
+      "Science has explained the universe through physics alone, so there is no remaining gap for God to fill as a designer or first cause of any kind."
+    ],
+    correct: 1,
+    feedback: "Paley's watchmaker analogy is key: just as a watch's complexity implies a watchmaker, the universe's complexity and precise fine-tuning imply a divine designer. This is the heart of the Design Argument."
+  },
+  {
+    topic: "Design Argument",
+    challenge: "Darwin proved that natural selection explains complexity in nature. We don't need God to explain life!",
+    options: [
+      "Evolution explains biological diversity, but the fine-tuning argument shows the universe's physical constants are so precisely set for life to exist that a designer is still required.",
+      "Darwin's theory actually supports the Design Argument — God must have used evolution as his chosen mechanism for creating the variety of living things we observe today.",
+      "The Design Argument was always focused on the universe as a whole rather than biology, so Darwin's theory of evolution has no real bearing on it whatsoever."
+    ],
+    correct: 0,
+    feedback: "This is a strong counter. Evolution explains biological diversity, but the fine-tuning argument notes that the fundamental constants of physics are so precisely calibrated for life that it still suggests design at the cosmic level."
+  },
+  {
+    topic: "Design Argument",
+    challenge: "Hume argued we've never seen a universe being made — so how can we claim to know ours is designed?",
+    options: [
+      "Hume's objection fails because we can observe millions of galaxies forming right now, giving us many comparison cases to judge whether our universe looks designed.",
+      "Hume was a committed atheist whose philosophical objections were driven by personal bias rather than sound logical reasoning about the nature of the cosmos.",
+      "Even without comparing universes, the extreme mathematical regularity and order within this universe is itself strong internal evidence consistent with intelligent design."
+    ],
+    correct: 2,
+    feedback: "Hume's criticism is that we can only judge design by comparison — but we only have one universe. The theist response is that the internal evidence of order and regularity is itself sufficient to suggest design, even without a comparison case."
+  },
+  // ── FIRST CAUSE ARGUMENT ──
+  {
+    topic: "First Cause Argument",
+    challenge: "If everything needs a cause, then what caused God? You can't just make an exception for him!",
+    options: [
+      "God caused himself — this is precisely what omnipotence means. An all-powerful being has the capacity to bring itself into existence without requiring an external prior cause.",
+      "God is a necessary being whose non-existence is impossible — unlike contingent things that need a cause, God's existence is self-explanatory and requires nothing prior to it.",
+      "We simply cannot answer what caused God — it is a mystery of faith, and demanding a rational explanation shows a misunderstanding of what religious belief actually involves."
+    ],
+    correct: 1,
+    feedback: "Aquinas distinguished contingent beings (things that might not exist) from necessary beings (things that must exist). God, as a necessary being, doesn't need a cause — his existence is self-explanatory. This avoids the 'who made God?' objection."
+  },
+  {
+    topic: "First Cause Argument",
+    challenge: "Science explains the Big Bang without God — the universe appeared from a quantum vacuum. No creator needed!",
+    options: [
+      "The Kalam Argument holds that whatever begins to exist has a cause — even the Big Bang itself began to exist, so it still needs a cause, which could be an eternal God.",
+      "The Big Bang is still an unproven scientific theory — many physicists reject it, so this objection relies on contested science rather than established cosmological fact.",
+      "The Big Bang actually confirms theism directly — the moment of creation described in Genesis matches the scientific account of the universe exploding into existence."
+    ],
+    correct: 0,
+    feedback: "The Kalam Argument (developed by William Lane Craig) presses this point: even if science explains the mechanics of the Big Bang, something must have caused the Big Bang itself. The quantum vacuum is not 'nothing' — it still needs explaining."
+  },
+  {
+    topic: "First Cause Argument",
+    challenge: "Maybe the universe has always existed — no beginning, no need for a first cause. Who says it had to start?",
+    options: [
+      "Cosmological evidence for the Big Bang proves the universe had a definite beginning, which scientifically rules out any possibility of an eternal, uncaused universe.",
+      "If the universe always existed, God must be eternal too — the eternal nature of the cosmos would simply transfer to God as its underlying ground and sustaining cause.",
+      "Aquinas argued an infinite chain of causes stretching back forever is impossible — without a first, uncaused cause to start the chain, nothing could ever come to exist at all."
+    ],
+    correct: 2,
+    feedback: "Aquinas's argument against infinite regress: if every cause requires a prior cause infinitely, then nothing ever actually gets started. Like dominos — you need a first push. Without an uncaused first cause, nothing would ever come into existence."
+  },
+  // ── PROBLEM OF EVIL ──
+  {
+    topic: "Problem of Evil",
+    challenge: "Innocent children die from disease and starvation. A truly loving and all-powerful God would never allow this!",
+    options: [
+      "Augustine's theodicy explains that all suffering, including that of children, results from Adam and Eve's original sin — evil entered the world through human disobedience in the Fall.",
+      "Irenaeus argued that suffering enables moral and spiritual growth — humans are created imperfect and must develop virtues like courage and compassion through encountering hardship.",
+      "The suffering of children is ultimately part of God's plan, which is beyond human understanding — we must trust that God has reasons we cannot comprehend from our limited perspective."
+    ],
+    correct: 1,
+    feedback: "Irenaeus's soul-making theodicy: humans are created imperfect and must develop through struggle. A world without suffering would produce no moral growth. God allows evil as the necessary condition for developing virtues like courage, compassion and faith."
+  },
+  {
+    topic: "Problem of Evil",
+    challenge: "Earthquakes and diseases kill thousands of innocent people — these aren't caused by free will. Why doesn't God stop them?",
+    options: [
+      "A world with regular, predictable natural laws may be necessary for meaningful human freedom — if God constantly intervened to prevent harm, our choices would have no real consequences.",
+      "Natural disasters are caused by demonic forces, not God — Satan has control over the physical world and uses earthquakes and floods as weapons against God's beloved creation.",
+      "The scale of natural evil proves God cannot be both all-powerful and all-loving — theists must accept that God has genuinely limited power over the natural forces of the world."
+    ],
+    correct: 0,
+    feedback: "This is one of the hardest challenges for theists. The response is that a world of regular natural laws is a prerequisite for meaningful human freedom. If God suspended natural laws whenever someone would get hurt, we couldn't make real choices with real consequences."
+  },
+  {
+    topic: "Problem of Evil",
+    challenge: "Surely an all-powerful God could create a world where humans have genuine free will AND there is no evil or suffering?",
+    options: [
+      "God could create free beings who always chose good, but chose not to — he wanted humans to develop virtue through real struggle rather than have goodness handed to them automatically.",
+      "In heaven God will create exactly this world — free will with no suffering. Earth is a temporary test before humans graduate to that perfect, painless existence with God.",
+      "Plantinga's Free Will Defence argues that genuine freedom logically requires the real possibility of choosing evil — a being that can only choose good is not actually free at all."
+    ],
+    correct: 2,
+    feedback: "Plantinga's Free Will Defence is philosophically powerful: to have true freedom, you must be able to do wrong. A being that can only choose good isn't truly free — it's just a sophisticated machine. Therefore even an omnipotent God cannot create free beings who are guaranteed never to sin."
+  }
+];
+
+let playerName = '';
+let currentQ = 0;
+let score = 0;
+let results = [];
+let shuffledOrder = [];
+
+function startGame() {
+  const input = document.getElementById('name-input');
+  const name = input.value.trim();
+  if (!name) {
+    document.getElementById('name-error').textContent = 'Please enter your name to begin.';
+    input.focus();
+    return;
+  }
+  playerName = name;
+  localStorage.setItem('gcse_player_name', name);
+  document.getElementById('intro-screen').style.display = 'none';
+  document.getElementById('scorebar').style.display = 'flex';
+  document.getElementById('arena').style.display = 'flex';
+  loadQuestion();
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildDots() {
+  const container = document.getElementById('progress-dots');
+  container.innerHTML = '';
+  for (let i = 0; i < questions.length; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    if (i < currentQ) dot.classList.add(results[i] ? 'done' : 'wrong-dot');
+    else if (i === currentQ) dot.classList.add('current');
+    container.appendChild(dot);
+  }
+}
+
+function loadQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('challenge-text').textContent = q.challenge;
+  document.getElementById('topic-badge').textContent = q.topic;
+  document.getElementById('q-display').textContent = `${currentQ + 1}/9`;
+  document.getElementById('score-display').textContent = score;
+
+  shuffledOrder = shuffle([0, 1, 2]);
+
+  shuffledOrder.forEach((origIdx, displayIdx) => {
+    const btn = document.getElementById(`choice-${displayIdx}`);
+    btn.textContent = q.options[origIdx];
+    btn.className = 'choice-btn';
+    btn.disabled = false;
+  });
+
+  document.getElementById('feedback-box').className = '';
+  document.getElementById('next-btn').className = '';
+  buildDots();
+}
+
+function choose(displayIdx) {
+  const q = questions[currentQ];
+  const chosenOrig = shuffledOrder[displayIdx];
+  const isCorrect = chosenOrig === q.correct;
+
+  for (let i = 0; i < 3; i++) {
+    document.getElementById(`choice-${i}`).disabled = true;
+  }
+
+  document.getElementById(`choice-${displayIdx}`).classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (!isCorrect) {
+    const correctDisplayIdx = shuffledOrder.indexOf(q.correct);
+    document.getElementById(`choice-${correctDisplayIdx}`).classList.add('correct');
+  }
+
+  if (isCorrect) score++;
+  results.push(isCorrect);
+
+  const fb = document.getElementById('feedback-box');
+  fb.innerHTML = `<strong>${isCorrect ? '✅ Well argued!' : '❌ Not quite — here\'s the stronger response:'}</strong><br><br>${q.feedback}`;
+  fb.className = 'show';
+
+  document.getElementById('next-btn').className = 'show';
+  buildDots();
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    showEnd();
+  } else {
+    loadQuestion();
+  }
+}
+
+function getGrade(s, max) {
+  const p = s / max;
+  if (p >= 0.89) return { label: 'A*', color: '#f59e0b' };
+  if (p >= 0.78) return { label: 'A',  color: '#22c55e' };
+  if (p >= 0.67) return { label: 'B',  color: '#3b82f6' };
+  if (p >= 0.56) return { label: 'C',  color: '#a855f7' };
+  if (p >= 0.44) return { label: 'D',  color: '#f97316' };
+  return           { label: 'F',  color: '#ef4444' };
+}
+
+function animateCount(el, target, suffix) {
+  let current = 0;
+  const step = () => {
+    current = Math.min(current + 1, target);
+    el.textContent = `${current} / ${suffix}`;
+    if (current < target) setTimeout(step, 80);
+  };
+  step();
+}
+
+function showEnd() {
+  document.getElementById('arena').style.display = 'none';
+  document.getElementById('scorebar').style.display = 'none';
+  const end = document.getElementById('end-screen');
+  end.className = 'show';
+
+  // Score dots
+  const dotsEl = document.getElementById('score-dots');
+  dotsEl.innerHTML = '';
+  results.forEach((r, i) => {
+    const d = document.createElement('div');
+    d.className = `sdot ${r ? 'hit' : 'miss'}`;
+    d.textContent = i + 1;
+    dotsEl.appendChild(d);
+  });
+
+  // Animated score
+  const scoreEl = document.getElementById('final-score');
+  scoreEl.textContent = '0 / 9';
+  setTimeout(() => animateCount(scoreEl, score, 9), 300);
+
+  // Grade
+  const g = getGrade(score, 9);
+  const badge = document.getElementById('grade-badge');
+  badge.textContent = g.label;
+  badge.style.background = g.color;
+
+  // localStorage best
+  const key = 'gcse_god_trial_best';
+  const prev = parseInt(localStorage.getItem(key) || '-1');
+  const isNew = score > prev;
+  if (isNew) localStorage.setItem(key, score);
+  document.getElementById('new-best').className = isNew && score > 0 ? 'show' : '';
+
+  let verdict, detail;
+  if (score === 9) {
+    verdict = "🏆 CASE DISMISSED — Verdict: GOD EXISTS";
+    detail = "Outstanding! You countered every challenge. Philosophy honours await.";
+  } else if (score >= 7) {
+    verdict = "✅ Verdict: MOSTLY IN FAVOUR";
+    detail = "Strong defence! Review the questions you missed to reach A*.";
+  } else if (score >= 5) {
+    verdict = "⚖️ Verdict: HUNG JURY";
+    detail = "The jury is undecided. Your arguments were mixed — keep studying!";
+  } else if (score >= 3) {
+    verdict = "❌ Verdict: GUILTY OF WEAK ARGUMENTATION";
+    detail = "The prosecution won several rounds. Review all three arguments and try again.";
+  } else {
+    verdict = "💀 Verdict: COMPLETE ACQUITTAL — of the argument, not God!";
+    detail = "The prosecution dominated. Read through the feedback carefully and try again.";
+  }
+
+  document.getElementById('verdict').textContent = verdict;
+  document.getElementById('end-detail').textContent = detail;
+  _endGrade = g.label;
+  const ss = document.getElementById('submit-status');
+  if (playerName) {
+    ss.textContent = `Saving score for ${playerName}…`; ss.style.color = '#94a3b8';
+    submitScore(playerName, 'god_on_trial', score, 9, _endGrade).then(ok => {
+      ss.textContent = ok ? `✅ Score saved for ${playerName}!` : '❌ Could not save — check Supabase config.';
+      ss.style.color = ok ? '#22c55e' : '#ef4444';
+    });
+  }
+}
+
+let _endGrade = 'F';
+
+function restart() {
+  currentQ = 0; score = 0; results = [];
+  document.getElementById('end-screen').className = '';
+  document.getElementById('arena').style.display = 'flex';
+  document.getElementById('scorebar').style.display = 'flex';
+  const s = document.getElementById('submit-status'); if (s) s.textContent = '';
+  loadQuestion();
+}
+
+// Pre-fill name if previously saved
+const _saved = getSavedName();
+if (_saved) document.getElementById('name-input').value = _saved;
+</script>
+</body>
+</html>
