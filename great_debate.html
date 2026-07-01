@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Great Debate</title>
+<script src="supabase-config.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0d1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .screen { display: none; width: 100%; max-width: 780px; }
+  .screen.show { display: block; }
+
+  #back-link {
+    color: #64748b; font-size: 0.85rem; margin-bottom: 16px;
+    text-decoration: none; display: block; text-align: center;
+  }
+  #back-link:hover { color: #f59e0b; }
+
+  /* ── INTRO ── */
+  #screen-intro { text-align: center; }
+  .game-title { font-size: 2.4rem; color: #f59e0b; margin-bottom: 6px; }
+  .game-sub { color: #64748b; font-size: 1rem; margin-bottom: 32px; }
+
+  .player-setup {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;
+  }
+  .player-card {
+    background: #1e293b; border-radius: 12px; padding: 20px;
+    border: 2px solid #334155;
+  }
+  .player-card.theist-card { border-color: #f59e0b; }
+  .player-card.atheist-card { border-color: #7c3aed; }
+  .player-role { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .player-role.theist { color: #f59e0b; }
+  .player-role.atheist { color: #a78bfa; }
+  .role-emoji { font-size: 2rem; margin-bottom: 8px; display: block; }
+  .role-desc { font-size: 0.82rem; color: #64748b; margin-bottom: 12px; line-height: 1.4; }
+  .name-input {
+    width: 100%; background: #0f172a; border: 1px solid #334155;
+    color: #e2e8f0; border-radius: 6px; padding: 10px 12px;
+    font-size: 0.95rem; font-family: Georgia, serif;
+  }
+  .name-input:focus { outline: none; border-color: #f59e0b; }
+
+  .start-btn {
+    background: #f59e0b; color: #0d1117; border: none;
+    border-radius: 8px; padding: 14px 40px; font-size: 1.1rem;
+    cursor: pointer; font-weight: bold; font-family: Georgia, serif;
+  }
+  .start-btn:hover { background: #d97706; }
+
+  .rules-box {
+    background: #1e293b; border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 24px; text-align: left; font-size: 0.88rem;
+    color: #94a3b8; line-height: 1.7; border: 1px solid #334155;
+  }
+  .rules-box strong { color: #f59e0b; }
+
+  /* ── HANDOFF ── */
+  #screen-handoff { text-align: center; }
+  .handoff-emoji { font-size: 4rem; margin-bottom: 16px; display: block; }
+  .handoff-title { font-size: 1.8rem; color: #f59e0b; margin-bottom: 10px; }
+  .handoff-body { color: #94a3b8; font-size: 1rem; line-height: 1.7; margin-bottom: 28px; }
+  .role-tag {
+    display: inline-block; border-radius: 20px;
+    padding: 6px 18px; font-weight: bold; font-size: 1rem; margin-bottom: 8px;
+  }
+  .role-tag.theist { background: #f59e0b; color: #0d1117; }
+  .role-tag.atheist { background: #7c3aed; color: white; }
+  .ready-btn {
+    background: #22c55e; color: #0d1117; border: none;
+    border-radius: 8px; padding: 14px 36px; font-size: 1.05rem;
+    cursor: pointer; font-weight: bold; font-family: Georgia, serif;
+  }
+  .ready-btn:hover { background: #16a34a; }
+
+  /* ── TURN ── */
+  .turn-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+  }
+  .topic-badge {
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 20px; padding: 5px 14px; font-size: 0.8rem; color: #64748b;
+  }
+  .turn-indicator {
+    font-size: 0.85rem; color: #94a3b8;
+  }
+  .turn-indicator span { color: #f59e0b; font-weight: bold; }
+
+  .progress-bar-outer {
+    background: #1e293b; border-radius: 10px; height: 6px; margin-bottom: 20px; overflow: hidden;
+  }
+  .progress-bar-inner { background: #f59e0b; height: 100%; border-radius: 10px; transition: width 0.4s; }
+
+  /* Dialogue log */
+  #dialogue-log {
+    background: #1e293b; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 20px; border: 1px solid #334155;
+    max-height: 180px; overflow-y: auto;
+  }
+  .log-empty { color: #334155; font-size: 0.85rem; text-align: center; font-style: italic; }
+  .log-entry {
+    margin-bottom: 10px; font-size: 0.88rem; line-height: 1.5;
+    padding-bottom: 10px; border-bottom: 1px solid #1e293b;
+  }
+  .log-entry:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .log-speaker {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px;
+    font-weight: bold; margin-bottom: 3px;
+  }
+  .log-speaker.theist { color: #f59e0b; }
+  .log-speaker.atheist { color: #a78bfa; }
+  .log-text { color: #cbd5e1; }
+  .score-badge {
+    display: inline-block; border-radius: 4px; padding: 1px 7px;
+    font-size: 0.72rem; font-weight: bold; margin-left: 6px; vertical-align: middle;
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .score-badge.show { opacity: 1; }
+  .sb-3 { background: #f59e0b; color: #0d1117; }
+  .sb-2 { background: #22c55e; color: #0d1117; }
+  .sb-1 { background: #f97316; color: #0d1117; }
+  .sb-0 { background: #ef4444; color: white; }
+
+  /* Statement card */
+  .statement-card {
+    background: #1e293b; border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 20px; border: 2px solid #334155;
+  }
+  .statement-from {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .statement-from.theist { color: #f59e0b; }
+  .statement-from.atheist { color: #a78bfa; }
+  .statement-text { font-size: 1.02rem; line-height: 1.65; color: #f1f5f9; }
+
+  .respond-label {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+    color: #64748b; margin-bottom: 10px;
+  }
+
+  .options-grid { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: #1e293b; border: 2px solid #334155;
+    color: #e2e8f0; border-radius: 10px;
+    padding: 14px 18px; font-size: 0.93rem; line-height: 1.55;
+    cursor: pointer; text-align: left;
+    transition: all 0.2s; font-family: Georgia, serif;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .option-btn:hover { border-color: #f59e0b; background: #1e2d40; }
+  .option-btn.selected { border-color: #22c55e; background: #14532d; }
+  .option-letter {
+    background: #334155; color: #94a3b8; border-radius: 4px;
+    padding: 2px 8px; font-size: 0.8rem; font-weight: bold;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .option-btn.selected .option-letter { background: #22c55e; color: #0d1117; }
+
+  /* ── LOCKED ── */
+  #screen-locked { text-align: center; }
+  .locked-title { font-size: 1.5rem; color: #22c55e; margin-bottom: 16px; }
+  .locked-response {
+    background: #1e293b; border: 2px solid #22c55e; border-radius: 12px;
+    padding: 18px 22px; text-align: left; margin-bottom: 24px;
+    font-size: 0.97rem; line-height: 1.6; color: #cbd5e1;
+  }
+  .locked-sub { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
+  .pass-btn {
+    background: #7c3aed; color: white; border: none;
+    border-radius: 8px; padding: 13px 32px; font-size: 1rem;
+    cursor: pointer; font-weight: bold; font-family: Georgia, serif;
+  }
+  .pass-btn:hover { background: #6d28d9; }
+
+  /* ── REVEAL ── */
+  #screen-reveal { text-align: center; }
+  .reveal-title { font-size: 2rem; color: #f59e0b; margin-bottom: 6px; }
+  .reveal-sub { color: #64748b; margin-bottom: 24px; }
+
+  .reveal-transcript {
+    background: #1e293b; border-radius: 12px; padding: 20px;
+    text-align: left; margin-bottom: 24px; border: 1px solid #334155;
+  }
+  .reveal-entry { margin-bottom: 14px; }
+  .reveal-speaker {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+    font-weight: bold; margin-bottom: 4px;
+  }
+  .reveal-speaker.theist { color: #f59e0b; }
+  .reveal-speaker.atheist { color: #a78bfa; }
+  .reveal-text {
+    font-size: 0.92rem; line-height: 1.55; color: #cbd5e1;
+    background: #0f172a; border-radius: 8px; padding: 12px 14px;
+    border-left: 4px solid #334155; transition: border-color 0.4s;
+  }
+  .reveal-text.score-3 { border-left-color: #f59e0b; background: #1c1500; }
+  .reveal-text.score-2 { border-left-color: #22c55e; background: #0a1f0a; }
+  .reveal-text.score-1 { border-left-color: #f97316; background: #1c0d00; }
+  .reveal-text.score-0 { border-left-color: #ef4444; background: #1c0000; }
+
+  .score-pills {
+    display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .player-score-pill {
+    background: #1e293b; border-radius: 12px; padding: 16px 28px; text-align: center;
+    border: 2px solid #334155; min-width: 140px;
+  }
+  .player-score-pill.winner { border-color: #f59e0b; }
+  .pill-name { font-size: 0.85rem; color: #94a3b8; margin-bottom: 4px; }
+  .pill-role { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .pill-role.theist { color: #f59e0b; }
+  .pill-role.atheist { color: #a78bfa; }
+  .pill-score { font-size: 2.5rem; font-weight: bold; color: #f59e0b; }
+  .pill-max { font-size: 0.85rem; color: #64748b; }
+  .winner-crown { font-size: 1.5rem; }
+
+  .winner-banner {
+    background: #1e293b; border: 2px solid #f59e0b; border-radius: 12px;
+    padding: 20px; margin-bottom: 24px; font-size: 1.4rem; color: #f59e0b;
+  }
+  .winner-detail { color: #94a3b8; font-size: 0.9rem; margin-top: 6px; }
+
+  .action-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .action-btn {
+    border: none; border-radius: 8px; padding: 12px 28px;
+    font-size: 1rem; cursor: pointer; font-family: Georgia, serif; font-weight: bold;
+  }
+  .btn-gold { background: #f59e0b; color: #0d1117; }
+  .btn-gold:hover { background: #d97706; }
+  .btn-dark { background: #334155; color: #e2e8f0; }
+  .btn-dark:hover { background: #475569; }
+
+  /* Save section on reveal */
+  .save-section {
+    background: #1e293b; border-radius: 10px; padding: 16px 20px;
+    margin-bottom: 20px; border: 1px solid #334155; text-align: left;
+  }
+  .save-section-label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; }
+  .save-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .save-name { color: #f59e0b; font-weight: bold; font-size: 0.9rem; min-width: 80px; }
+  .save-status { font-size: 0.82rem; color: #64748b; }
+</style>
+</head>
+<body>
+
+<a href="gcse_god_hub.html" id="back-link">← Back to Games Hub</a>
+
+<!-- ══ INTRO ══ -->
+<div id="screen-intro" class="screen show">
+  <h1 class="game-title">🎙️ The Great Debate</h1>
+  <p class="game-sub">Two players · Three arguments · Hidden scores · One winner</p>
+
+  <div class="rules-box">
+    <strong>How to play:</strong> Each player argues one side — Theist (God exists) or Atheist (God doesn't exist). When it's your turn, read the opposing argument and pick the <strong>best response</strong> from four options. Scores are <strong>hidden until the end</strong> — only then will you find out how well you argued. Highest score wins.
+  </div>
+
+  <div class="player-setup">
+    <div class="player-card theist-card">
+      <div class="player-role theist">Theist</div>
+      <span class="role-emoji">🙏</span>
+      <div class="role-desc">Argues that God exists. Defends the Design Argument, First Cause, and theodicies against the Problem of Evil.</div>
+      <input class="name-input" id="theist-name" type="text" placeholder="Player 1 name…" maxlength="20" />
+    </div>
+    <div class="player-card atheist-card">
+      <div class="player-role atheist">Atheist</div>
+      <span class="role-emoji">🔬</span>
+      <div class="role-desc">Argues that God does not exist. Challenges the Design and First Cause Arguments and presses the Problem of Evil.</div>
+      <input class="name-input" id="atheist-name" type="text" placeholder="Player 2 name…" maxlength="20" />
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">Begin the Debate ⚔️</button>
+</div>
+
+<!-- ══ HANDOFF ══ -->
+<div id="screen-handoff" class="screen">
+  <span class="handoff-emoji">📱</span>
+  <div class="handoff-title">Pass the device</div>
+  <div class="handoff-body" id="handoff-body"></div>
+  <button class="ready-btn" onclick="showTurn()">I'm ready — show my options</button>
+</div>
+
+<!-- ══ TURN ══ -->
+<div id="screen-turn" class="screen">
+  <div class="turn-header">
+    <div class="topic-badge" id="turn-topic"></div>
+    <div class="turn-indicator">Turn <span id="turn-num"></span> of 6</div>
+  </div>
+  <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress-bar"></div></div>
+
+  <div id="dialogue-log"><div class="log-empty">The debate hasn't started yet…</div></div>
+
+  <div class="statement-card">
+    <div class="statement-from" id="statement-from"></div>
+    <div class="statement-text" id="statement-text"></div>
+  </div>
+
+  <div class="respond-label" id="respond-label"></div>
+  <div class="options-grid" id="options-grid"></div>
+</div>
+
+<!-- ══ LOCKED ══ -->
+<div id="screen-locked" class="screen">
+  <div class="locked-title">✅ Response logged</div>
+  <div class="locked-response" id="locked-text"></div>
+  <div class="locked-sub" id="locked-sub"></div>
+  <button class="pass-btn" id="pass-btn" onclick="goNext()"></button>
+</div>
+
+<!-- ══ REVEAL ══ -->
+<div id="screen-reveal" class="screen">
+  <div class="reveal-title">⚖️ The Verdict</div>
+  <div class="reveal-sub">Scores revealed — see how each response ranked</div>
+
+  <div class="score-pills">
+    <div class="player-score-pill" id="pill-theist">
+      <div class="pill-name" id="pill-theist-name"></div>
+      <div class="pill-role theist">Theist</div>
+      <div class="pill-score" id="pill-theist-score">0</div>
+      <div class="pill-max">/ 9 pts</div>
+    </div>
+    <div class="player-score-pill" id="pill-atheist">
+      <div class="pill-name" id="pill-atheist-name"></div>
+      <div class="pill-role atheist">Atheist</div>
+      <div class="pill-score" id="pill-atheist-score">0</div>
+      <div class="pill-max">/ 9 pts</div>
+    </div>
+  </div>
+
+  <div class="reveal-transcript" id="reveal-transcript"></div>
+
+  <div class="winner-banner" id="winner-banner">
+    <div id="winner-text"></div>
+    <div class="winner-detail" id="winner-detail"></div>
+  </div>
+
+  <div class="save-section">
+    <div class="save-section-label">📊 Save scores to class leaderboard</div>
+    <div class="save-row">
+      <div class="save-name" id="save-theist-name"></div>
+      <button onclick="saveScore('theist')" id="save-btn-theist"
+        style="background:#22c55e;color:#0d1117;border:none;border-radius:6px;padding:7px 16px;font-size:0.85rem;cursor:pointer;font-weight:bold;font-family:Georgia,serif;">
+        Save ✓
+      </button>
+      <div class="save-status" id="save-status-theist"></div>
+    </div>
+    <div class="save-row">
+      <div class="save-name" id="save-atheist-name"></div>
+      <button onclick="saveScore('atheist')" id="save-btn-atheist"
+        style="background:#22c55e;color:#0d1117;border:none;border-radius:6px;padding:7px 16px;font-size:0.85rem;cursor:pointer;font-weight:bold;font-family:Georgia,serif;">
+        Save ✓
+      </button>
+      <div class="save-status" id="save-status-atheist"></div>
+    </div>
+  </div>
+
+  <div class="action-btns">
+    <button class="action-btn btn-gold" onclick="restartGame()">Play Again</button>
+    <button class="action-btn btn-dark" onclick="location.href='gcse_god_hub.html'">Back to Hub</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DEBATE CONTENT — 6 turns, 4 options each
+//  Options are shuffled each turn.
+//  Scores: 3 = best, 2 = good, 1 = weak, 0 = poor
+// ══════════════════════════════════════════
+const turns = [
+  {
+    topic: "Design Argument",
+    picker: "atheist",
+    contextSpeaker: "theist",
+    contextText: "William Paley's watchmaker analogy shows the universe's complexity — like a watch implying a watchmaker — points to an intelligent divine designer behind all of creation.",
+    instruction: "Counter this argument with your best response:",
+    options: [
+      { text: "Hume showed we cannot compare the universe to a watch — we have only ever seen one universe and have no real basis to judge whether it looks well-designed or not.", score: 3 },
+      { text: "Darwin's natural selection explains the complexity of living things through unguided evolution, removing any apparent need for a divine designer in the biological world.", score: 2 },
+      { text: "The universe contains far too much waste and suffering to have been purposefully designed — a truly competent creator would have produced something far more efficient.", score: 1 },
+      { text: "Paley was a clergyman arguing in favour of his own religion, so his analogy is obviously biased and cannot be treated as a credible philosophical argument for God.", score: 0 }
+    ]
+  },
+  {
+    topic: "Design Argument",
+    picker: "theist",
+    contextSpeaker: "atheist",
+    contextText: "Darwin's evolution and Hume's criticism show that complexity in nature needs no divine explanation — apparent design can arise through purely natural, unguided processes.",
+    instruction: "Defend the Design Argument with your best response:",
+    options: [
+      { text: "Evolution explains biological diversity, but not why the universe's physical constants are so precisely calibrated for life — the fine-tuning argument stands unanswered.", score: 3 },
+      { text: "Even if Hume questions comparison, the extraordinary mathematical order and regularity within the cosmos still points strongly to an intelligent mind behind its structure.", score: 2 },
+      { text: "The Design Argument applies to the universe as a whole, not just biology — Darwin's discoveries about living things are largely beside the point Paley was actually making.", score: 1 },
+      { text: "Aquinas's Five Ways provide five entirely independent proofs for God's existence, any one of which would suffice even if the Design Argument were completely abandoned.", score: 0 }
+    ]
+  },
+  {
+    topic: "First Cause Argument",
+    picker: "theist",
+    contextSpeaker: "atheist",
+    contextText: "The First Cause Argument defeats itself — if everything needs a cause, then God needs a cause too. You cannot arbitrarily exempt him from the very rule you are applying.",
+    instruction: "Defend the First Cause Argument with your best response:",
+    options: [
+      { text: "God is a necessary being whose non-existence is impossible by nature — unlike contingent things that require a cause, God exists necessarily and needs nothing prior to him.", score: 3 },
+      { text: "The Kalam Argument holds that whatever begins to exist needs a cause — God, being eternal and uncreated, never began to exist, so the rule simply does not apply here.", score: 2 },
+      { text: "We may not be able to explain what caused God, but that mystery does not disprove his existence — some realities simply lie beyond the reach of human rational enquiry.", score: 1 },
+      { text: "God is omnipotent, meaning he has the power to cause himself to exist — self-causation is a unique divine capacity that no other being in the universe could possess.", score: 0 }
+    ]
+  },
+  {
+    topic: "First Cause Argument",
+    picker: "atheist",
+    contextSpeaker: "theist",
+    contextText: "Aquinas shows an infinite regress of causes is impossible — the causal chain must have a starting point, and that uncaused first cause, eternal and necessary, is what we call God.",
+    instruction: "Challenge this argument with your best response:",
+    options: [
+      { text: "Russell argued that if God can simply exist without a cause, then so can the universe — both claims are equally unsupported, making the whole argument entirely circular.", score: 3 },
+      { text: "Modern physics suggests quantum fluctuations may produce effects without prior causes — the universe could have originated through a natural, uncaused quantum-level event.", score: 2 },
+      { text: "The Big Bang provides a scientific account of the universe's origin through natural processes — introducing God as the cause adds an unnecessary and unverifiable extra step.", score: 1 },
+      { text: "Mathematicians accept infinite series as perfectly coherent — an infinite regress of causes is logically valid, and so Aquinas's objection to it simply does not hold.", score: 0 }
+    ]
+  },
+  {
+    topic: "Problem of Evil",
+    picker: "theist",
+    contextSpeaker: "atheist",
+    contextText: "The Problem of Evil is fatal to theism — an omnipotent, omniscient and omnibenevolent God would have both the ability and will to eliminate evil entirely. Evil exists. So God does not.",
+    instruction: "Defend belief in God against this challenge:",
+    options: [
+      { text: "Plantinga's Free Will Defence shows genuine freedom logically requires the possibility of evil — even God cannot create truly free beings who are guaranteed to always choose good.", score: 3 },
+      { text: "Irenaeus argued evil is necessary for soul-making — humans are created imperfect and must develop moral virtues like courage and compassion by encountering real adversity.", score: 2 },
+      { text: "Augustine explained evil is the absence of good, not a thing God created — it entered through human free will in the Fall, not through any limitation or failure in God.", score: 1 },
+      { text: "God's purposes are beyond human comprehension — what appears evil from our limited perspective may serve a divine plan so vast that we simply cannot perceive its goodness.", score: 0 }
+    ]
+  },
+  {
+    topic: "Problem of Evil",
+    picker: "atheist",
+    contextSpeaker: "theist",
+    contextText: "Free will explains moral evil, and Irenaeus's soul-making theodicy accounts for suffering — evil is the necessary environment in which human moral development towards God occurs.",
+    instruction: "Press the Problem of Evil with your strongest counter:",
+    options: [
+      { text: "Soul-making cannot justify natural evil — no account of moral development explains why an all-loving God allows innocent children to die in earthquakes, floods and disease.", score: 3 },
+      { text: "Even granting soul-making, the sheer scale of suffering in the world vastly exceeds what any educational or developmental purpose could ever reasonably require or justify.", score: 2 },
+      { text: "The theodicy only applies to conscious humans, but natural evil destroys all living things including animals, who are incapable of any spiritual growth through their pain.", score: 1 },
+      { text: "God could achieve the same moral development through positive experiences and challenges — there is no reason why an all-powerful God would need to rely on pain and disaster.", score: 0 }
+    ]
+  }
+];
+
+// ══════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════
+let players = { theist: { name: '' }, atheist: { name: '' } };
+let currentTurn = 0;
+let dialogueLog = []; // { speaker, text, isResponse, score }
+let shuffledOrder = [];
+let scores = { theist: 0, atheist: 0 };
+
+// ══════════════════════════════════════════
+//  SCREENS
+// ══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.className = 'screen');
+  document.getElementById(id).className = 'screen show';
+}
+
+// ══════════════════════════════════════════
+//  INTRO → START
+// ══════════════════════════════════════════
+function startGame() {
+  const tName = document.getElementById('theist-name').value.trim();
+  const aName = document.getElementById('atheist-name').value.trim();
+  if (!tName || !aName) { alert('Please enter both player names.'); return; }
+  players.theist.name = tName;
+  players.atheist.name = aName;
+  currentTurn = 0;
+  dialogueLog = [];
+  scores = { theist: 0, atheist: 0 };
+  showHandoff();
+}
+
+// ══════════════════════════════════════════
+//  HANDOFF
+// ══════════════════════════════════════════
+function showHandoff() {
+  const t = turns[currentTurn];
+  const picker = t.picker;
+  const name = players[picker].name;
+  const roleLabel = picker === 'theist' ? '🙏 Theist' : '🔬 Atheist';
+  const roleClass = picker;
+
+  document.getElementById('handoff-body').innerHTML = `
+    <div style="margin-bottom:12px">
+      <span class="role-tag ${roleClass}">${roleLabel}</span>
+    </div>
+    <strong style="color:#f1f5f9;font-size:1.1rem">${name}</strong>, it's your turn.<br><br>
+    <span style="color:#64748b">Topic: <strong style="color:#94a3b8">${t.topic}</strong><br>
+    You will see what the other side has said — then choose your best response.<br>
+    Your score won't be revealed until the very end.</span>
+  `;
+  showScreen('screen-handoff');
+}
+
+// ══════════════════════════════════════════
+//  TURN
+// ══════════════════════════════════════════
+function showTurn() {
+  const t = turns[currentTurn];
+  showScreen('screen-turn');
+
+  // Progress
+  document.getElementById('turn-topic').textContent = t.topic;
+  document.getElementById('turn-num').textContent = currentTurn + 1;
+  document.getElementById('progress-bar').style.width = `${((currentTurn) / 6) * 100}%`;
+
+  // Build dialogue log display
+  buildLog();
+
+  // Statement card
+  const fromEl = document.getElementById('statement-from');
+  fromEl.className = `statement-from ${t.contextSpeaker}`;
+  fromEl.textContent = `${t.contextSpeaker === 'theist' ? '🙏' : '🔬'} ${players[t.contextSpeaker].name} (${t.contextSpeaker}) argues:`;
+  document.getElementById('statement-text').textContent = t.contextText;
+
+  // Respond label
+  document.getElementById('respond-label').textContent =
+    `${players[t.picker].name}, ${t.instruction}`;
+
+  // Shuffle options
+  shuffledOrder = [0,1,2,3].sort(() => Math.random() - 0.5);
+
+  const letters = ['A','B','C','D'];
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  shuffledOrder.forEach((origIdx, dispIdx) => {
+    const opt = t.options[origIdx];
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[dispIdx]}</span><span>${opt.text}</span>`;
+    btn.onclick = () => pickOption(dispIdx);
+    grid.appendChild(btn);
+  });
+}
+
+function buildLog() {
+  const logEl = document.getElementById('dialogue-log');
+  if (dialogueLog.length === 0) {
+    logEl.innerHTML = '<div class="log-empty">The debate hasn\'t started yet…</div>';
+    return;
+  }
+  logEl.innerHTML = dialogueLog.map(entry => `
+    <div class="log-entry">
+      <div class="log-speaker ${entry.speaker}">
+        ${entry.speaker === 'theist' ? '🙏' : '🔬'} ${players[entry.speaker].name} (${entry.speaker})
+        ${entry.isResponse ? '— responds:' : '— argues:'}
+      </div>
+      <div class="log-text">${entry.text}</div>
+    </div>
+  `).join('');
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function pickOption(dispIdx) {
+  const t = turns[currentTurn];
+  const origIdx = shuffledOrder[dispIdx];
+  const chosen = t.options[origIdx];
+
+  // Highlight selected
+  document.querySelectorAll('.option-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === dispIdx) b.classList.add('selected');
+  });
+
+  // Add the opening statement to log (contextSpeaker)
+  dialogueLog.push({
+    speaker: t.contextSpeaker,
+    text: t.contextText,
+    isResponse: currentTurn >= 2,
+    score: null
+  });
+
+  // Add chosen response to log
+  dialogueLog.push({
+    speaker: t.picker,
+    text: chosen.text,
+    isResponse: true,
+    score: chosen.score
+  });
+
+  // Track score
+  scores[t.picker] += chosen.score;
+
+  // Show locked screen
+  document.getElementById('locked-text').textContent = chosen.text;
+
+  const nextTurn = currentTurn + 1;
+  const isLast = nextTurn >= turns.length;
+
+  if (isLast) {
+    document.getElementById('locked-sub').textContent = 'The debate is complete. Time for the verdict!';
+    document.getElementById('pass-btn').textContent = 'Reveal the scores →';
+  } else {
+    const nextPicker = turns[nextTurn].picker;
+    document.getElementById('locked-sub').textContent =
+      `Now pass the device to ${players[nextPicker].name}.`;
+    document.getElementById('pass-btn').textContent =
+      `Pass to ${players[nextPicker].name} →`;
+  }
+
+  currentTurn++;
+  showScreen('screen-locked');
+}
+
+function goNext() {
+  if (currentTurn >= turns.length) {
+    showReveal();
+  } else {
+    showHandoff();
+  }
+}
+
+// ══════════════════════════════════════════
+//  REVEAL
+// ══════════════════════════════════════════
+async function showReveal() {
+  showScreen('screen-reveal');
+
+  // Set up score pills
+  document.getElementById('pill-theist-name').textContent = players.theist.name;
+  document.getElementById('pill-atheist-name').textContent = players.atheist.name;
+  document.getElementById('pill-theist-score').textContent = '0';
+  document.getElementById('pill-atheist-score').textContent = '0';
+
+  // Build transcript (no scores yet)
+  const transcript = document.getElementById('reveal-transcript');
+
+  // Filter out duplicate context entries — show each entry once
+  const entries = [];
+  // Rebuild from scratch: for each turn, show context statement + response
+  turns.forEach((t, i) => {
+    const logContext = dialogueLog[i * 2];
+    const logResponse = dialogueLog[i * 2 + 1];
+    if (logContext) entries.push({ ...logContext, score: null });
+    if (logResponse) entries.push(logResponse);
+  });
+
+  transcript.innerHTML = entries.map((entry, i) => `
+    <div class="reveal-entry" id="reveal-entry-${i}">
+      <div class="reveal-speaker ${entry.speaker}">
+        ${entry.speaker === 'theist' ? '🙏' : '🔬'} ${players[entry.speaker].name} (${entry.speaker})
+        ${entry.isResponse ? '— responds:' : '— argues:'}
+      </div>
+      <div class="reveal-text" id="reveal-text-${i}">${entry.text}</div>
+    </div>
+  `).join('');
+
+  // Hide winner and save section initially
+  document.getElementById('winner-banner').style.display = 'none';
+  document.querySelector('.save-section').style.display = 'none';
+
+  await delay(800);
+
+  // Animate reveal
+  let tScore = 0, aScore = 0;
+  for (let i = 0; i < entries.length; i++) {
+    await delay(700);
+    const entry = entries[i];
+    const textEl = document.getElementById(`reveal-text-${i}`);
+    if (entry.score !== null) {
+      textEl.classList.add(`score-${entry.score}`);
+      // Update running score
+      if (entry.speaker === 'theist') {
+        tScore += entry.score;
+        document.getElementById('pill-theist-score').textContent = tScore;
+      } else {
+        aScore += entry.score;
+        document.getElementById('pill-atheist-score').textContent = aScore;
+      }
+    }
+  }
+
+  await delay(800);
+  showWinner(tScore, aScore);
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showWinner(tScore, aScore) {
+  const banner = document.getElementById('winner-banner');
+  banner.style.display = 'block';
+
+  let winnerText, detail;
+  if (tScore > aScore) {
+    document.getElementById('pill-theist').classList.add('winner');
+    winnerText = `🏆 ${players.theist.name} wins! (Theist)`;
+    detail = `${tScore} pts vs ${aScore} pts — God's existence was successfully defended.`;
+  } else if (aScore > tScore) {
+    document.getElementById('pill-atheist').classList.add('winner');
+    winnerText = `🏆 ${players.atheist.name} wins! (Atheist)`;
+    detail = `${aScore} pts vs ${tScore} pts — the case against God's existence prevailed.`;
+  } else {
+    winnerText = '🤝 It\'s a draw!';
+    detail = `Both players scored ${tScore} pts — a genuinely balanced debate!`;
+  }
+
+  document.getElementById('winner-text').textContent = winnerText;
+  document.getElementById('winner-detail').textContent = detail;
+
+  // Save section
+  const saveSection = document.querySelector('.save-section');
+  saveSection.style.display = 'block';
+  document.getElementById('save-theist-name').textContent = players.theist.name;
+  document.getElementById('save-atheist-name').textContent = players.atheist.name;
+  document.getElementById('save-status-theist').textContent = '';
+  document.getElementById('save-status-atheist').textContent = '';
+}
+
+// ══════════════════════════════════════════
+//  SUPABASE SAVE
+// ══════════════════════════════════════════
+function getGrade(s) {
+  if (s >= 8) return 'A*';
+  if (s >= 7) return 'A';
+  if (s >= 6) return 'B';
+  if (s >= 5) return 'C';
+  if (s >= 3) return 'D';
+  return 'F';
+}
+
+async function saveScore(role) {
+  const name = players[role].name;
+  const score = scores[role];
+  const grade = getGrade(score);
+  const btn = document.getElementById(`save-btn-${role}`);
+  const status = document.getElementById(`save-status-${role}`);
+  btn.disabled = true;
+  status.textContent = 'Saving…'; status.style.color = '#94a3b8';
+  const ok = await submitScore(name, 'debate', score, 9, grade);
+  if (ok) {
+    status.textContent = '✅ Saved!'; status.style.color = '#22c55e';
+  } else {
+    status.textContent = '❌ Failed — check Supabase config.'; status.style.color = '#ef4444';
+    btn.disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════
+//  RESTART
+// ══════════════════════════════════════════
+function restartGame() {
+  currentTurn = 0; dialogueLog = []; scores = { theist: 0, atheist: 0 };
+  document.getElementById('theist-name').value = players.theist.name;
+  document.getElementById('atheist-name').value = players.atheist.name;
+  showScreen('screen-intro');
+}
+</script>
+</body>
+</html>
