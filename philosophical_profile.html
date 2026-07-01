@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Your Philosophical Profile?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0d1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .screen { display: none; width: 100%; max-width: 720px; }
+  .screen.show { display: block; }
+
+  #back-link {
+    color: #64748b; font-size: 0.85rem; margin-bottom: 16px;
+    text-decoration: none; display: block; text-align: center;
+  }
+  #back-link:hover { color: #f59e0b; }
+
+  /* ── INTRO ── */
+  #screen-intro { text-align: center; }
+  .title { font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px; line-height: 1.2; }
+  .intro-sub { color: #64748b; font-size: 1rem; margin-bottom: 24px; }
+  .intro-body {
+    background: #1e293b; border-radius: 12px; padding: 20px 24px;
+    text-align: left; margin-bottom: 24px; font-size: 0.95rem;
+    line-height: 1.75; color: #94a3b8; border: 1px solid #334155;
+  }
+  .intro-body strong { color: #f1f5f9; }
+  .intro-profiles {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 28px;
+  }
+  .intro-profile {
+    background: #1e293b; border-radius: 10px; padding: 14px;
+    border-left: 3px solid var(--c); text-align: left;
+  }
+  .ip-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: var(--c); font-weight: bold; margin-bottom: 4px; }
+  .ip-name { font-size: 0.95rem; color: #f1f5f9; margin-bottom: 3px; }
+  .ip-thinker { font-size: 0.78rem; color: #64748b; }
+  .start-btn {
+    background: #f59e0b; color: #0d1117; border: none;
+    border-radius: 8px; padding: 14px 40px; font-size: 1.1rem;
+    cursor: pointer; font-weight: bold; font-family: Georgia, serif;
+  }
+  .start-btn:hover { background: #d97706; }
+
+  /* ── QUESTION ── */
+  .q-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .q-num { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+  .q-counter { font-size: 0.8rem; color: #64748b; }
+  .progress-outer { background: #1e293b; border-radius: 10px; height: 6px; margin-bottom: 24px; }
+  .progress-inner { background: #f59e0b; height: 100%; border-radius: 10px; transition: width 0.4s; }
+
+  .question-card {
+    background: #1e293b; border-radius: 14px; padding: 24px 26px;
+    margin-bottom: 20px; border: 1px solid #334155;
+  }
+  .question-text { font-size: 1.1rem; line-height: 1.65; color: #f1f5f9; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn {
+    background: #1e293b; border: 2px solid #334155;
+    color: #cbd5e1; border-radius: 10px;
+    padding: 14px 18px; font-size: 0.93rem; line-height: 1.55;
+    cursor: pointer; text-align: left;
+    transition: all 0.2s; font-family: Georgia, serif;
+  }
+  .option-btn:hover { border-color: #f59e0b; background: #1e2d40; color: #f1f5f9; }
+  .option-btn.chosen { border-color: #f59e0b; background: #2d1f00; color: #f1f5f9; }
+  .option-btn:disabled { cursor: default; }
+
+  /* ── REVEAL ── */
+  #screen-reveal { text-align: center; }
+
+  .profile-header { margin-bottom: 8px; }
+  .profile-icon { font-size: 4rem; margin-bottom: 12px; display: block; }
+  .profile-label {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .profile-name { font-size: 2.2rem; font-weight: bold; margin-bottom: 6px; }
+  .profile-tagline { font-size: 1rem; color: #94a3b8; margin-bottom: 24px; font-style: italic; }
+
+  .profile-body {
+    background: #1e293b; border-radius: 12px; padding: 22px 26px;
+    text-align: left; margin-bottom: 20px;
+    font-size: 0.97rem; line-height: 1.75; color: #cbd5e1;
+    border-left: 4px solid var(--profile-color, #f59e0b);
+  }
+  .profile-body p { margin-bottom: 12px; }
+  .profile-body p:last-child { margin-bottom: 0; }
+  .thinkers-row {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;
+  }
+  .thinker-chip {
+    background: #0f172a; border: 1px solid #334155; border-radius: 20px;
+    padding: 4px 12px; font-size: 0.8rem; color: #94a3b8;
+  }
+
+  /* Breakdown chart */
+  .breakdown {
+    background: #1e293b; border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 20px; text-align: left;
+  }
+  .breakdown-title {
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px;
+    color: #64748b; margin-bottom: 16px;
+  }
+  .breakdown-row { margin-bottom: 12px; }
+  .breakdown-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.88rem; color: #94a3b8; margin-bottom: 5px;
+  }
+  .breakdown-label strong { color: #f1f5f9; }
+  .breakdown-bar-outer { background: #0f172a; border-radius: 6px; height: 10px; }
+  .breakdown-bar-inner { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
+
+  /* Blend note */
+  .blend-note {
+    background: #0f172a; border-radius: 10px; padding: 14px 18px;
+    font-size: 0.88rem; color: #94a3b8; margin-bottom: 20px;
+    line-height: 1.6; text-align: left; border: 1px solid #334155;
+  }
+  .blend-note strong { color: #f59e0b; }
+
+  .action-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .action-btn {
+    border: none; border-radius: 8px; padding: 12px 28px;
+    font-size: 1rem; cursor: pointer; font-family: Georgia, serif; font-weight: bold;
+  }
+  .btn-gold { background: #f59e0b; color: #0d1117; }
+  .btn-gold:hover { background: #d97706; }
+  .btn-dark { background: #334155; color: #e2e8f0; }
+  .btn-dark:hover { background: #475569; }
+
+  /* Quote styling */
+  .quote-block {
+    background: #0f172a; border-left: 3px solid #f59e0b;
+    border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 14px 0;
+    font-style: italic; font-size: 0.92rem; color: #94a3b8;
+  }
+  .quote-attr { font-style: normal; font-size: 0.78rem; color: #64748b; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<a href="gcse_god_hub.html" id="back-link">← Back to Games Hub</a>
+
+<!-- ══ INTRO ══ -->
+<div id="screen-intro" class="screen show">
+  <h1 class="title">🧭 What's Your Philosophical Profile?</h1>
+  <p class="intro-sub">8 questions · No right answers · Find out where you really stand</p>
+
+  <div class="intro-body">
+    <strong>Should belief in God be based on rational argument, or is it a matter of personal faith?</strong><br><br>
+    Philosophers have disagreed sharply on this. Some think careful argument can prove God exists. Others — like Kierkegaard — say faith is precisely about going <em>beyond</em> what reason can demonstrate. Others think the arguments fail and God is unlikely. And some sit genuinely in the middle.<br><br>
+    Answer honestly — there are no correct answers. At the end you'll find out which philosophical tradition you naturally belong to.
+  </div>
+
+  <div class="intro-profiles">
+    <div class="intro-profile" style="--c:#f59e0b">
+      <div class="ip-label">Profile 1</div>
+      <div class="ip-name">Natural Theologian</div>
+      <div class="ip-thinker">Aquinas · Paley · Swinburne</div>
+    </div>
+    <div class="intro-profile" style="--c:#a78bfa">
+      <div class="ip-label">Profile 2</div>
+      <div class="ip-name">Fideist</div>
+      <div class="ip-thinker">Kierkegaard · Pascal · Barth</div>
+    </div>
+    <div class="intro-profile" style="--c:#3b82f6">
+      <div class="ip-label">Profile 3</div>
+      <div class="ip-name">Agnostic Rationalist</div>
+      <div class="ip-thinker">Hume · Kant · William James</div>
+    </div>
+    <div class="intro-profile" style="--c:#ef4444">
+      <div class="ip-label">Profile 4</div>
+      <div class="ip-name">Secular Humanist</div>
+      <div class="ip-thinker">Russell · Dawkins · Grayling</div>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startQuiz()">Discover My Profile →</button>
+</div>
+
+<!-- ══ QUESTION ══ -->
+<div id="screen-question" class="screen">
+  <div class="q-header">
+    <div class="q-num">Question <span id="q-num">1</span></div>
+    <div class="q-counter"><span id="q-done">0</span> / 8</div>
+  </div>
+  <div class="progress-outer"><div class="progress-inner" id="progress-bar" style="width:0%"></div></div>
+
+  <div class="question-card">
+    <div class="question-text" id="question-text"></div>
+  </div>
+
+  <div class="options" id="options"></div>
+</div>
+
+<!-- ══ REVEAL ══ -->
+<div id="screen-reveal" class="screen">
+  <div class="profile-header">
+    <span class="profile-icon" id="profile-icon"></span>
+    <div class="profile-label" id="profile-label" style="color:var(--profile-color)"></div>
+    <div class="profile-name" id="profile-name"></div>
+    <div class="profile-tagline" id="profile-tagline"></div>
+  </div>
+
+  <div class="profile-body" id="profile-body"></div>
+
+  <div class="blend-note" id="blend-note" style="display:none"></div>
+
+  <div class="breakdown">
+    <div class="breakdown-title">Your answer breakdown</div>
+    <div id="breakdown-chart"></div>
+  </div>
+
+  <div class="action-btns">
+    <button class="action-btn btn-gold" onclick="restartQuiz()">Try Again</button>
+    <button class="action-btn btn-dark" onclick="location.href='gcse_god_hub.html'">Back to Hub</button>
+  </div>
+</div>
+
+<script>
+// Position keys: N = Natural Theologian, F = Fideist, A = Agnostic, S = Secular/Atheist
+
+const questions = [
+  {
+    text: "Someone asks you: 'Do you believe in God?' Which feels closest to your honest answer?",
+    options: [
+      { text: "I think the evidence and arguments make God's existence genuinely likely — I find the philosophical case convincing.", pos: 'N' },
+      { text: "I believe, but it's not about arguments — it's a personal commitment that goes beyond what proof could ever establish.", pos: 'F' },
+      { text: "Honestly, I don't know — the question feels too big to answer with any real confidence either way.", pos: 'A' },
+      { text: "I don't think there's enough good reason to believe — the evidence and arguments don't add up.", pos: 'S' }
+    ]
+  },
+  {
+    text: "Paley argues the universe's complexity — like a watch implying a watchmaker — points to a divine designer. What's your honest reaction?",
+    options: [
+      { text: "It's a compelling point — the precision and order of the universe really does suggest something intelligent behind it.", pos: 'N' },
+      { text: "It might be logically interesting, but it misses what faith actually is — God isn't a conclusion you reach at the end of an argument.", pos: 'F' },
+      { text: "I can see both sides — it's a thought-provoking argument but I'm not sure it's decisive enough to settle anything.", pos: 'A' },
+      { text: "Darwin's natural selection explains the apparent design in nature — this argument was undermined the moment evolution was discovered.", pos: 'S' }
+    ]
+  },
+  {
+    text: "Kierkegaard said believing in God requires a 'leap of faith' — a passionate personal commitment beyond what reason can prove. What do you think?",
+    options: [
+      { text: "I disagree — I think reason can get you very close to God, and the leap Kierkegaard describes isn't really necessary.", pos: 'N' },
+      { text: "I completely agree — faith is precisely this: committing to something you cannot prove, and that's not a weakness but its very heart.", pos: 'F' },
+      { text: "Partly — reason does leave a genuine gap that can't be resolved, though I'm not sure 'leaping' is the right response.", pos: 'A' },
+      { text: "Believing things without sufficient evidence isn't admirable — the 'leap of faith' just sounds like wishful thinking.", pos: 'S' }
+    ]
+  },
+  {
+    text: "If a philosophical argument could conclusively prove God existed — would that change how you think about religion?",
+    options: [
+      { text: "Yes — argument matters to me and proof would either confirm or create religious belief.", pos: 'N' },
+      { text: "Not really — proof would actually destroy faith. If God were proved, there'd be no room left for the personal trust that makes faith meaningful.", pos: 'F' },
+      { text: "It would definitely affect me — though I seriously doubt such proof is actually possible for anyone to construct.", pos: 'A' },
+      { text: "I'd take it seriously, but I'd be looking carefully for the hidden flaw — I suspect any such argument would have one.", pos: 'S' }
+    ]
+  },
+  {
+    text: "What do you think religious belief fundamentally IS — at its heart?",
+    options: [
+      { text: "A rational conclusion: the best explanation of the evidence, reached through careful argument and reflection.", pos: 'N' },
+      { text: "A personal relationship and commitment that transcends what proof could ever capture — it's lived, not argued.", pos: 'F' },
+      { text: "A meaningful human response to deep questions that probably can't be fully resolved by reason or anything else.", pos: 'A' },
+      { text: "Primarily a cultural and psychological phenomenon — it tells us about human needs more than about truth.", pos: 'S' }
+    ]
+  },
+  {
+    text: "Innocent children suffer and die in natural disasters. How does this affect your view of God's existence?",
+    options: [
+      { text: "It's a serious challenge, but theodicies like Irenaeus's soul-making or Plantinga's free will defence offer reasonable responses.", pos: 'N' },
+      { text: "Suffering is one of the deepest mysteries of faith — something to wrestle with honestly before God, not to argue away.", pos: 'F' },
+      { text: "It genuinely troubles me and makes belief harder to hold — I'm not sure the available responses fully answer it.", pos: 'A' },
+      { text: "For me it's close to decisive — it's very hard to reconcile with a God who is all-powerful and all-loving.", pos: 'S' }
+    ]
+  },
+  {
+    text: "Science keeps explaining more and more of the universe. What does this mean for belief in God?",
+    options: [
+      { text: "Science and God are compatible — the laws of science themselves point towards a rational mind that designed them.", pos: 'N' },
+      { text: "Science answers how things happen; God is about why there is something rather than nothing — they're different questions entirely.", pos: 'F' },
+      { text: "Science makes God less necessary as an explanation, though I don't think it settles the question one way or the other.", pos: 'A' },
+      { text: "The more science explains, the less work God does — the gaps he used to fill keep getting smaller.", pos: 'S' }
+    ]
+  },
+  {
+    text: "Which statement feels most honestly true to you right now?",
+    options: [
+      { text: "I want to believe things for good reasons — and I think there are genuinely good reasons to believe God exists.", pos: 'N' },
+      { text: "Truth in religion isn't about proof — it's about authentic personal encounter and commitment that reason can't replace.", pos: 'F' },
+      { text: "I'm genuinely open and uncertain — I haven't found enough to commit either way and I think that's an honest position.", pos: 'A' },
+      { text: "Extraordinary claims require extraordinary evidence — and I don't think religion provides it.", pos: 'S' }
+    ]
+  }
+];
+
+const profiles = {
+  N: {
+    icon: '📐',
+    label: 'Profile 1',
+    name: 'Natural Theologian',
+    tagline: '"Reason and faith point in the same direction."',
+    color: '#f59e0b',
+    body: `<p>You believe that reason and faith are not just compatible — they are allies. Like Thomas Aquinas, you think careful philosophical argument can genuinely support, and perhaps even demonstrate, the existence of God. The Design Argument, the First Cause, the fine-tuning of the universe — these aren't just interesting puzzles for you, they carry real evidential weight.</p>
+    <p>You sit in a long tradition of thinkers who believed the human mind, properly used, could arrive at God through reflection on the natural world. This doesn't mean you think faith is merely intellectual — but you do think there are <em>good reasons</em> to believe, and that reason and religion point in the same direction.</p>
+    <div class="quote-block">"To one who has faith, no explanation is necessary. To one without faith, no explanation is possible." — but you'd push back: for you, explanation and faith are both possible and necessary.<div class="quote-attr">— Thomas Aquinas (adapted)</div></div>
+    <div class="thinkers-row">
+      <span class="thinker-chip">Thomas Aquinas</span>
+      <span class="thinker-chip">William Paley</span>
+      <span class="thinker-chip">C.S. Lewis</span>
+      <span class="thinker-chip">Richard Swinburne</span>
+      <span class="thinker-chip">Alvin Plantinga</span>
+    </div>`,
+  },
+  F: {
+    icon: '🌊',
+    label: 'Profile 2',
+    name: 'Fideist',
+    tagline: '"Faith is not reached by argument — it is leaped into."',
+    color: '#a78bfa',
+    body: `<p>You're with Kierkegaard. Faith, for you, is not the conclusion of a logical argument — it is a passionate, personal commitment that goes precisely beyond what reason can prove. The 'leap of faith' isn't a failure of thinking; it is the very nature of authentic religious belief. A God who could be proved would not be the God worth believing in.</p>
+    <p>This is sometimes called <em>fideism</em> — the view that faith is arational (not irrational, but in a different category from rational proof altogether). You suspect that people who try to argue their way to God are missing something essential: the personal, living encounter with the divine that no syllogism can substitute for.</p>
+    <div class="quote-block">"It is so impossible for the world to exist without God that, if God could be forgotten even for a moment, the world would immediately cease to exist." <div class="quote-attr">— Søren Kierkegaard</div></div>
+    <div class="thinkers-row">
+      <span class="thinker-chip">Søren Kierkegaard</span>
+      <span class="thinker-chip">Blaise Pascal</span>
+      <span class="thinker-chip">Karl Barth</span>
+      <span class="thinker-chip">Dietrich Bonhoeffer</span>
+      <span class="thinker-chip">Tertullian</span>
+    </div>`,
+  },
+  A: {
+    icon: '⚖️',
+    label: 'Profile 3',
+    name: 'Agnostic Rationalist',
+    tagline: '"Intellectual honesty means sitting with what we cannot know."',
+    color: '#3b82f6',
+    body: `<p>You take the arguments seriously — both for and against God — but you find that reason alone cannot settle the question. Like Hume, you recognise the limits of human knowledge. The Design Argument is interesting but not conclusive. The Problem of Evil is troubling but not decisive. You sit in the space between, genuinely open.</p>
+    <p>This isn't fence-sitting — it's a principled position. You think intellectual honesty requires acknowledging when a question genuinely can't be resolved with certainty. You might find value in religious practice and thought without being able to commit to the metaphysical claim. Your uncertainty is not a failure to decide; it is itself a considered philosophical stance.</p>
+    <div class="quote-block">"A wise man proportions his belief to the evidence."<div class="quote-attr">— David Hume</div></div>
+    <div class="thinkers-row">
+      <span class="thinker-chip">David Hume</span>
+      <span class="thinker-chip">Immanuel Kant</span>
+      <span class="thinker-chip">William James</span>
+      <span class="thinker-chip">T.H. Huxley</span>
+      <span class="thinker-chip">Bertrand Russell</span>
+    </div>`,
+  },
+  S: {
+    icon: '🔭',
+    label: 'Profile 4',
+    name: 'Secular Humanist',
+    tagline: '"Reason and evidence are the best tools we have — and they don\'t support belief in God."',
+    color: '#ef4444',
+    body: `<p>You think reason and evidence are the best tools we have for understanding the world — and when applied honestly to the question of God, they don't support belief. The philosophical arguments for God's existence strike you as unconvincing: the Design Argument is answered by Darwin, the First Cause Argument is circular, and the Problem of Evil is deeply troubling.</p>
+    <p>You believe in facing reality honestly, without the comfort of beliefs that aren't supported by evidence. That doesn't make life meaningless — quite the opposite. Human flourishing, ethics and meaning are real and important, and don't require a divine foundation to be genuine. You stand in the tradition of secular thinkers who thought intellectual courage means following the evidence wherever it leads.</p>
+    <div class="quote-block">"The universe we observe has precisely the properties we should expect if there is, at bottom, no design, no purpose, no evil and no good — nothing but blind, pitiless indifference."<div class="quote-attr">— Richard Dawkins</div></div>
+    <div class="thinkers-row">
+      <span class="thinker-chip">Bertrand Russell</span>
+      <span class="thinker-chip">Richard Dawkins</span>
+      <span class="thinker-chip">A.C. Grayling</span>
+      <span class="thinker-chip">J.L. Mackie</span>
+      <span class="thinker-chip">John Stuart Mill</span>
+    </div>`,
+  }
+};
+
+const blends = {
+  'NF': "You sit between <strong>Natural Theology</strong> and <strong>Fideism</strong> — a fascinating tension. You value reason but also feel the pull of faith as something more than mere argument. Many religious traditions hold both: Aquinas thought reason could approach God, but that personal faith went further still.",
+  'NA': "You sit between <strong>Natural Theology</strong> and <strong>Agnosticism</strong>. You find the arguments for God interesting and not easily dismissed, but you're honest enough to acknowledge their limits. You might be described as a 'sympathetic agnostic' — open to persuasion, rigorous in your thinking.",
+  'NS': "You show a real tension: drawn both to arguments for God and to sceptical critiques. This suggests you're genuinely grappling with the question — which is exactly where philosophy begins.",
+  'FA': "You combine <strong>Fideism</strong> with genuine <strong>Agnosticism</strong> — you feel the pull of faith as something beyond reason, yet you're not fully committed. You might be in a moment of transition, or you might hold faith lightly as a possibility rather than a certainty.",
+  'FS': "An unusual combination — you're drawn both to the idea that faith transcends argument, and to secular scepticism. You perhaps feel that if God exists, arguments won't find him — but you're not convinced God does exist.",
+  'AS': "You sit between <strong>Agnosticism</strong> and <strong>Secular Humanism</strong> — sceptical but not entirely closed. You find the arguments for God unconvincing but stop short of full atheism, perhaps because you think certainty in either direction requires more than we have."
+};
+
+// ══════════════════════════════════════════
+//  GAME STATE
+// ══════════════════════════════════════════
+let currentQ = 0;
+let answers = []; // array of position keys
+let shuffledOptions = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.className = 'screen');
+  document.getElementById(id).className = 'screen show';
+}
+
+function startQuiz() {
+  currentQ = 0; answers = [];
+  loadQuestion();
+  showScreen('screen-question');
+}
+
+function loadQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('q-num').textContent = currentQ + 1;
+  document.getElementById('q-done').textContent = currentQ;
+  document.getElementById('progress-bar').style.width = `${(currentQ / 8) * 100}%`;
+  document.getElementById('question-text').textContent = q.text;
+
+  shuffledOptions = shuffle(q.options);
+  const optContainer = document.getElementById('options');
+  optContainer.innerHTML = '';
+  shuffledOptions.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = opt.text;
+    btn.onclick = () => pickOption(i, btn);
+    optContainer.appendChild(btn);
+  });
+}
+
+function pickOption(idx, btn) {
+  // Disable all
+  document.querySelectorAll('.option-btn').forEach(b => { b.disabled = true; });
+  btn.classList.add('chosen');
+
+  answers.push(shuffledOptions[idx].pos);
+
+  setTimeout(() => {
+    currentQ++;
+    if (currentQ >= questions.length) {
+      showReveal();
+    } else {
+      loadQuestion();
+    }
+  }, 350);
+}
+
+// ══════════════════════════════════════════
+//  REVEAL
+// ══════════════════════════════════════════
+function showReveal() {
+  // Count positions
+  const counts = { N: 0, F: 0, A: 0, S: 0 };
+  answers.forEach(p => counts[p]++);
+
+  // Find top position
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const topPos = sorted[0][0];
+  const topCount = sorted[0][1];
+  const secondPos = sorted[1][0];
+  const secondCount = sorted[1][1];
+
+  const p = profiles[topPos];
+
+  // Set profile display
+  document.getElementById('profile-icon').textContent = p.icon;
+  document.getElementById('profile-label').textContent = p.label;
+  document.getElementById('profile-label').style.color = p.color;
+  document.getElementById('profile-name').textContent = p.name;
+  document.getElementById('profile-name').style.color = p.color;
+  document.getElementById('profile-tagline').textContent = p.tagline;
+  document.getElementById('profile-body').innerHTML = p.body;
+  document.getElementById('profile-body').style.setProperty('--profile-color', p.color);
+  document.getElementById('profile-body').style.borderLeftColor = p.color;
+  document.body.style.setProperty('--profile-color', p.color);
+
+  // Blend note
+  const blendEl = document.getElementById('blend-note');
+  if (topCount <= 3 && secondCount >= 2) {
+    const key = [topPos, secondPos].sort().join('');
+    const blendText = blends[key] || `You show a genuine mix of <strong>${profiles[topPos].name}</strong> and <strong>${profiles[secondPos].name}</strong> thinking — a thoughtful position that resists easy categorisation.`;
+    blendEl.innerHTML = `<strong style="color:#f59e0b">🔀 You're a blend!</strong> ${blendText}`;
+    blendEl.style.display = 'block';
+  } else {
+    blendEl.style.display = 'none';
+  }
+
+  // Breakdown chart
+  const posLabels = { N: 'Natural Theologian', F: 'Fideist', A: 'Agnostic Rationalist', S: 'Secular Humanist' };
+  const posColors = { N: '#f59e0b', F: '#a78bfa', A: '#3b82f6', S: '#ef4444' };
+  const chart = document.getElementById('breakdown-chart');
+  chart.innerHTML = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([pos, count]) => `
+      <div class="breakdown-row">
+        <div class="breakdown-label">
+          <strong>${posLabels[pos]}</strong>
+          <span>${count} / 8</span>
+        </div>
+        <div class="breakdown-bar-outer">
+          <div class="breakdown-bar-inner" style="width:${(count/8)*100}%;background:${posColors[pos]}"></div>
+        </div>
+      </div>
+    `).join('');
+
+  showScreen('screen-reveal');
+}
+
+function restartQuiz() {
+  currentQ = 0; answers = [];
+  showScreen('screen-intro');
+}
+</script>
+</body>
+</html>
