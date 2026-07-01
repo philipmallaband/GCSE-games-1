@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCSE God Unit — Games Hub</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #0d1117;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+  }
+
+  .top-badge {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px;
+    color: #64748b; margin-bottom: 12px;
+  }
+  h1 { font-size: 2.4rem; color: #f59e0b; text-align: center; margin-bottom: 8px; }
+  .tagline { color: #94a3b8; font-size: 1rem; text-align: center; margin-bottom: 12px; }
+
+  .topics {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 36px;
+  }
+  .topic-chip {
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 20px; padding: 6px 14px; font-size: 0.82rem; color: #94a3b8;
+  }
+
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px; width: 100%; max-width: 960px;
+  }
+
+  .game-card {
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.25s;
+    cursor: pointer;
+  }
+  .game-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .game-emoji { font-size: 3rem; margin-bottom: 14px; display: block; }
+  .game-title { font-size: 1.25rem; color: var(--accent); font-weight: bold; margin-bottom: 8px; }
+  .game-subtitle { font-size: 0.88rem; color: #64748b; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .game-desc { font-size: 0.92rem; color: #94a3b8; line-height: 1.6; flex: 1; margin-bottom: 16px; }
+
+  .game-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .tag {
+    background: #0f172a; border-radius: 4px;
+    padding: 3px 9px; font-size: 0.75rem; color: #64748b;
+  }
+
+  .play-btn {
+    background: var(--accent); color: #0d1117;
+    border: none; border-radius: 8px;
+    padding: 11px 20px; font-size: 0.95rem;
+    font-weight: bold; font-family: Georgia, serif;
+    cursor: pointer; text-align: center; transition: opacity 0.2s;
+    text-decoration: none; display: block;
+  }
+  .play-btn:hover { opacity: 0.85; }
+
+  .card-1 { --accent: #ef4444; }
+  .card-2 { --accent: #f59e0b; }
+  .card-3 { --accent: #7c3aed; }
+
+    /* LEADERBOARD */
+  .leaderboard {
+    width: 100%; max-width: 960px;
+    background: #1e293b; border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .leaderboard h2 { font-size: 1rem; color: #64748b; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+  .lb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .lb-card {
+    background: #0f172a; border-radius: 10px; padding: 14px 16px;
+    text-align: center; border: 1px solid #334155;
+  }
+  .lb-game { font-size: 0.8rem; color: #64748b; margin-bottom: 6px; }
+  .lb-score { font-size: 1.8rem; font-weight: bold; color: #f59e0b; }
+  .lb-grade {
+    display: inline-block; border-radius: 50%;
+    width: 36px; height: 36px; line-height: 36px;
+    font-size: 1rem; font-weight: bold; color: #0d1117; margin: 6px auto;
+  }
+  .lb-none { color: #334155; font-size: 0.85rem; }
+  .lb-max { color: #64748b; font-size: 0.75rem; }
+  .lb-total { margin-top: 14px; text-align: center; color: #64748b; font-size: 0.9rem; }
+  .lb-total strong { color: #f59e0b; font-size: 1.1rem; }
+
+  footer {
+    margin-top: 48px; color: #334155; font-size: 0.8rem; text-align: center;
+  }
+
+  .divider {
+    width: 100%; max-width: 960px;
+    border: none; border-top: 1px solid #1e293b;
+    margin: 32px 0;
+  }
+  .revision-strip {
+    width: 100%; max-width: 960px;
+    background: #1e293b; border-radius: 12px; padding: 20px 24px;
+  }
+  .revision-strip h2 { font-size: 1rem; color: #64748b; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .key-terms {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;
+  }
+  .term {
+    background: #0f172a; border-radius: 8px; padding: 12px 14px;
+  }
+  .term strong { color: #f59e0b; display: block; font-size: 0.9rem; margin-bottom: 4px; }
+  .term span { color: #64748b; font-size: 0.82rem; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<script src="supabase-config.js"></script>
+<div class="top-badge">GCSE Religious Studies</div>
+<h1>🕊️ The God Unit</h1>
+<p class="tagline">Three games. Three arguments. One exam sorted.</p>
+
+<div class="topics">
+  <div class="topic-chip">📐 Design Argument</div>
+  <div class="topic-chip">⛓️ First Cause Argument</div>
+  <div class="topic-chip">😈 Problem of Evil</div>
+</div>
+
+<div class="games-grid">
+
+  <div class="game-card card-1" onclick="location.href='god_on_trial.html'">
+    <span class="game-emoji">⚖️</span>
+    <div class="game-title">God on Trial</div>
+    <div class="game-subtitle">Debate Card Game</div>
+    <div class="game-desc">You're defending belief in God in a philosophical courtroom. The prosecution throws challenges — you must choose the best response card to win the case.</div>
+    <div class="game-tags">
+      <span class="tag">All 3 topics</span>
+      <span class="tag">9 rounds</span>
+      <span class="tag">Arguments & counter-arguments</span>
+    </div>
+    <a href="god_on_trial.html" class="play-btn" style="background:#ef4444">Play God on Trial →</a>
+  </div>
+
+  <div class="game-card card-2" onclick="location.href='philosophers_gauntlet.html'">
+    <span class="game-emoji">⚔️</span>
+    <div class="game-title">Philosopher's Gauntlet</div>
+    <div class="game-subtitle">Boss Battle Quiz</div>
+    <div class="game-desc">Face three philosophical bosses — the Design Dragon, the First Cause Colossus, and the Problem of Evil Phantom. Answer correctly to deal damage. Wrong answers hurt you!</div>
+    <div class="game-tags">
+      <span class="tag">3 bosses</span>
+      <span class="tag">12 questions</span>
+      <span class="tag">HP battle mechanic</span>
+    </div>
+    <a href="philosophers_gauntlet.html" class="play-btn" style="background:#f59e0b; color:#0d1117">Enter the Gauntlet →</a>
+  </div>
+
+  <div class="game-card card-3" onclick="location.href='theodicy_escape_room.html'">
+    <span class="game-emoji">🔐</span>
+    <div class="game-title">Theodicy Escape Room</div>
+    <div class="game-subtitle">Timed Puzzle Game</div>
+    <div class="game-desc">You're locked in! Solve three rooms — sequence Aquinas's argument, match philosophers to their ideas, then classify evils and match theodicies. Fastest time wins!</div>
+    <div class="game-tags">
+      <span class="tag">3 rooms</span>
+      <span class="tag">Timed challenge</span>
+      <span class="tag">Drag, match & classify</span>
+    </div>
+    <a href="theodicy_escape_room.html" class="play-btn" style="background:#7c3aed">Enter the Escape Room →</a>
+  </div>
+
+</div>
+
+<hr class="divider">
+
+<!-- LEADERBOARD -->
+<div class="leaderboard">
+  <h2>🏆 Your Best Scores</h2>
+  <div class="lb-grid" id="lb-grid"></div>
+  <div class="lb-total" id="lb-total"></div>
+</div>
+
+<hr class="divider">
+
+<div class="revision-strip">
+  <h2>⚡ Quick Revision — Key Terms</h2>
+  <div class="key-terms">
+    <div class="term"><strong>Teleological</strong><span>Related to purpose and design — the Design Argument is the teleological argument</span></div>
+    <div class="term"><strong>Paley's Watch</strong><span>The analogy: finding a watch implies a watchmaker; the universe implies God</span></div>
+    <div class="term"><strong>Infinite Regress</strong><span>A chain of causes going back forever — Aquinas said this is impossible</span></div>
+    <div class="term"><strong>Necessary Being</strong><span>A being that must exist (God) — unlike contingent beings that might not</span></div>
+    <div class="term"><strong>Moral Evil</strong><span>Evil caused by human free choices (murder, war, injustice)</span></div>
+    <div class="term"><strong>Natural Evil</strong><span>Evil caused by nature (earthquakes, disease, floods)</span></div>
+    <div class="term"><strong>Augustine's Theodicy</strong><span>Evil came through the Fall — human free will broke a perfect world</span></div>
+    <div class="term"><strong>Irenaeus's Theodicy</strong><span>Soul-making: evil helps humans develop morally and spiritually</span></div>
+    <div class="term"><strong>Omnipotent</strong><span>All-powerful — one of God's traditional attributes</span></div>
+    <div class="term"><strong>Omnibenevolent</strong><span>All-good/all-loving — another traditional attribute of God</span></div>
+    <div class="term"><strong>Hume's Criticism</strong><span>We can't compare the universe to machines — we've only seen one universe</span></div>
+    <div class="term"><strong>Free Will Defence</strong><span>Genuine freedom requires the possibility of evil (Plantinga)</span></div>
+  </div>
+</div>
+
+<!-- CLASS LEADERBOARD -->
+<div class="leaderboard" id="class-lb-section" style="margin-bottom:24px;">
+  <h2>📊 Class Leaderboard</h2>
+  <div id="class-lb-content" style="color:#64748b;font-size:0.9rem;">Loading scores…</div>
+</div>
+
+<footer>GCSE Religious Studies — The God Unit &nbsp;·&nbsp; Design Argument · First Cause · Problem of Evil</footer>
+
+<script>
+function gradeFor(score, max) {
+  const p = score / max;
+  if (p >= 0.89) return { label: 'A*', color: '#f59e0b' };
+  if (p >= 0.75) return { label: 'A',  color: '#22c55e' };
+  if (p >= 0.67) return { label: 'B',  color: '#3b82f6' };
+  if (p >= 0.56) return { label: 'C',  color: '#a855f7' };
+  if (p >= 0.44) return { label: 'D',  color: '#f97316' };
+  return           { label: 'F',  color: '#ef4444' };
+}
+
+function renderLeaderboard() {
+  const games = [
+    { key: 'gcse_god_trial_best', label: '⚖️ God on Trial', max: 9 },
+    { key: 'gcse_gauntlet_best',  label: '⚔️ Gauntlet',    max: 12 },
+    { key: 'gcse_escape_best',    label: '🔐 Escape Room', max: 15 }
+  ];
+
+  const grid = document.getElementById('lb-grid');
+  grid.innerHTML = '';
+  let totalScore = 0, totalMax = 0, allPlayed = true;
+
+  games.forEach(g => {
+    const raw = localStorage.getItem(g.key);
+    const card = document.createElement('div');
+    card.className = 'lb-card';
+    totalMax += g.max;
+
+    if (raw === null) {
+      allPlayed = false;
+      card.innerHTML = `
+        <div class="lb-game">${g.label}</div>
+        <div class="lb-score lb-none">—</div>
+        <div class="lb-max">Not played yet</div>`;
+    } else {
+      const s = parseInt(raw);
+      totalScore += s;
+      const gr = gradeFor(s, g.max);
+      card.innerHTML = `
+        <div class="lb-game">${g.label}</div>
+        <div class="lb-score">${s}<span class="lb-max"> / ${g.max}</span></div>
+        <div class="lb-grade" style="background:${gr.color}">${gr.label}</div>`;
+    }
+    grid.appendChild(card);
+  });
+
+  const totalEl = document.getElementById('lb-total');
+  if (allPlayed) {
+    const gr = gradeFor(totalScore, totalMax);
+    totalEl.innerHTML = `Overall: <strong>${totalScore} / ${totalMax}</strong> — Grade <strong style="color:${gr.color}">${gr.label}</strong>`;
+  } else {
+    totalEl.innerHTML = 'Play all three games to see your overall score!';
+  }
+}
+
+renderLeaderboard();
+
+// ── Class leaderboard (Supabase) ──
+const GAMES = [
+  { key: 'god_on_trial', label: '⚖️ God on Trial',          max: 9  },
+  { key: 'gauntlet',     label: '⚔️ Philosopher\'s Gauntlet', max: 12 },
+  { key: 'escape_room',  label: '🔐 Theodicy Escape Room',   max: 15 }
+];
+
+function gradeColor(grade) {
+  const map = { 'A*':'#f59e0b', 'A':'#22c55e', 'B':'#3b82f6', 'C':'#a855f7', 'D':'#f97316', 'F':'#ef4444' };
+  return map[grade] || '#64748b';
+}
+
+function bestPerPlayer(scores, gameKey) {
+  const byPlayer = {};
+  scores.filter(s => s.game === gameKey).forEach(s => {
+    if (!byPlayer[s.player_name] || s.score > byPlayer[s.player_name].score) {
+      byPlayer[s.player_name] = s;
+    }
+  });
+  return Object.values(byPlayer).sort((a, b) => b.score - a.score);
+}
+
+function buildGameTable(rows, max) {
+  if (rows.length === 0) return '<div style="color:#475569;font-size:0.88rem;padding:6px 0">No scores yet</div>';
+  const trs = rows.map((s, i) => `
+    <tr>
+      <td style="padding:6px 10px;color:#64748b;font-size:0.82rem">${i + 1}</td>
+      <td style="padding:6px 10px;color:#f1f5f9">${s.player_name}</td>
+      <td style="padding:6px 10px;color:#f59e0b;font-weight:bold">${s.score} / ${max}</td>
+      <td style="padding:6px 10px">
+        <span style="background:${gradeColor(s.grade)};color:#0d1117;border-radius:4px;padding:2px 7px;font-weight:bold;font-size:0.8rem">${s.grade}</span>
+      </td>
+    </tr>`).join('');
+  return `<table style="width:100%;border-collapse:collapse;font-size:0.9rem">
+    <thead><tr style="border-bottom:1px solid #334155">
+      <th style="padding:6px 10px;text-align:left;color:#64748b;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px">#</th>
+      <th style="padding:6px 10px;text-align:left;color:#64748b;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px">Name</th>
+      <th style="padding:6px 10px;text-align:left;color:#64748b;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px">Best Score</th>
+      <th style="padding:6px 10px;text-align:left;color:#64748b;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px">Grade</th>
+    </tr></thead>
+    <tbody>${trs}</tbody>
+  </table>`;
+}
+
+async function renderClassLeaderboard() {
+  const el = document.getElementById('class-lb-content');
+  const scores = await fetchAllScores(500);
+
+  if (!scores) {
+    el.innerHTML = '<span style="color:#ef4444">Could not load — Supabase not yet configured. See <code>supabase-config.js</code>.</span>';
+    return;
+  }
+
+  el.innerHTML = GAMES.map(g => `
+    <div style="margin-bottom:24px">
+      <div style="font-size:0.9rem;font-weight:bold;color:#f1f5f9;margin-bottom:10px;font-family:Georgia,serif">${g.label}</div>
+      ${buildGameTable(bestPerPlayer(scores, g.key), g.max)}
+    </div>`).join('');
+}
+
+renderClassLeaderboard();
+</script>
+
+</body>
+</html>
